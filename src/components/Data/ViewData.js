@@ -107,7 +107,7 @@ const ViewData = ({ match }) => {
 
     useEffect(() => {
         if (!attributeWaiting) {
-            const getEngineResults = async id => {
+           const getEngineResults = async id => {
                 try {
                     const { sqlView } = await engine.query(sqlViewDetail, {
                         variables: { id: id },
@@ -175,7 +175,7 @@ const ViewData = ({ match }) => {
             setData(d)
         }
     }
-
+      
     const updateVariable = newVariable => {
         const updatedVariables = Object.assign({}, variables, newVariable)
         window.history.pushState(

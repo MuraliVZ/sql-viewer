@@ -6,7 +6,7 @@ import React, { createRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAttribute } from '../AttributeProvider'
 import LinksMenu from '../Data/LinksMenu'
-import CustomTable from '../Table/CustomTable'
+import CustomTablequery from '../Table/Customtablequery'
 import { useUserInfo } from '../UserInfoProvider'
 import SettingsModal from './SettingsModal'
 
@@ -97,7 +97,7 @@ const SelectQuery = () => {
                         {loading && <CircularLoader />}
                         {error && <span>{`Error: ${error.message}`}</span>}
                         {data && (
-                            <CustomTable
+                            <CustomTablequery
                                 persistSearch={true}
                                 searchable={true}
                                 searchableDescription={`${String.fromCharCode(
@@ -111,6 +111,9 @@ const SelectQuery = () => {
                                                 <div key={`${d.id}_view`}>
                                                     <Link
                                                         to={`/view/${d.id}`}
+                                                        
+    
+
                                                         style={{
                                                             textDecoration:
                                                                 'none',

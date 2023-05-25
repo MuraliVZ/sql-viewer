@@ -1,0 +1,40 @@
+.custom-table {
+    width: 100%;
+  }
+  
+  .filter-container {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .column-select {
+    margin-right: 8px;
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .filter-input {
+    flex: 1;
+    margin-right: 8px;
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .apply-filter-button {
+    padding: 8px 16px;
+    font-size: 14px;
+    background-color:rgb(13, 71, 161);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .apply-filter-button:hover {
+    background-color: rgb(13, 71, 161);
+  }
+  
+  /* Additional styling can be added as needed */
+  
