@@ -24,23 +24,35 @@ const CustomTable = ({
     tableData.length > 500 ? 500 : tableData.length
   );
 
+  const getColumnDistinctValues = (column) => {
+    const columnIndex = tableColumns.findIndex(
+      (col) => col.name === column
+    );
+    const distinctValues = Array.from(
+      new Set(tableData.map((data) => data[columnIndex]))
+    );
+    return distinctValues.filter((value) => value !== null);
+  };
+
   const filterBySearch = (data, filterValues) => {
     setPagePosition(0);
     setFilteredRows(
-      data.filter(datim =>
-        Object.entries(filterValues).every(([columnName, filterValue]) => {
-          const columnIndex = tableColumns.findIndex(
-            column => column.name === columnName
-          );
-          const columnValue = datim[columnIndex];
-          return (
-            columnValue !== null &&
-            ((columnValue.text || columnValue)
-              .toString()
-              .toLowerCase()
-              .indexOf(filterValue.toLowerCase()) >= 0)
-          );
-        })
+      data.filter((datim) =>
+        Object.entries(filterValues).every(
+          ([columnName, filterValue]) => {
+            const columnIndex = tableColumns.findIndex(
+              (column) => column.name === columnName
+            );
+            const columnValue = datim[columnIndex];
+            return (
+              columnValue !== null &&
+              ((columnValue.text || columnValue)
+                .toString()
+                .toLowerCase()
+                .indexOf(filterValue.toLowerCase()) >= 0)
+            );
+          }
+        )
       )
     );
   };
@@ -50,15 +62,39 @@ const CustomTable = ({
   };
 
   const handleFilterInputChange = (columnName, filterValue) => {
-    setFilterValues(prevFilterValues => ({
+    setFilterValues((prevFilterValues) => ({
       ...prevFilterValues,
       [columnName]: filterValue,
     }));
   };
 
-  const handleColumnSelectChange = e => {
-    setSelectedColumn(e.target.value);
+  const handleColumnSelectChange = (e) => {
+    const selectedColumn = e.target.value;
+    setSelectedColumn(selectedColumn);
+    const distinctValues = getColumnDistinctValues(selectedColumn);
+    setFilterValues((prevFilterValues) => ({
+      [selectedColumn]: '',
+    }));
+    
+    // Filter the original tableData using the new selectedColumn
+    const filteredData = tableData.filter((data) => {
+      const columnIndex = tableColumns.findIndex(
+        (column) => column.name === selectedColumn
+      );
+      const columnValue = data[columnIndex];
+      const filterValue = filterValues[selectedColumn] || '';
+      return (
+        columnValue !== null &&
+        ((columnValue.text || columnValue)
+          .toString()
+          .toLowerCase()
+          .indexOf(filterValue.toLowerCase()) >= 0)
+      );
+    });
+  
+    setFilteredRows(filteredData);
   };
+  
 
   return (
     <div className="custom-table">
@@ -76,15 +112,20 @@ const CustomTable = ({
           ))}
         </select>
         {selectedColumn && (
-          <input
+          <select
             className="filter-input"
-            type="text"
             value={filterValues[selectedColumn] || ''}
-            onChange={e =>
+            onChange={(e) =>
               handleFilterInputChange(selectedColumn, e.target.value)
             }
-            placeholder="Enter Filter Value"
-          />
+          >
+            <option value="">All</option>
+            {getColumnDistinctValues(selectedColumn).map((value, index) => (
+              <option key={index} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
         )}
         <button className="apply-filter-button" onClick={setSearchText}>
           Apply Filter
