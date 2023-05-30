@@ -17,7 +17,7 @@ const CustomTable = ({
 }) => {
   const [filteredRows, setFilteredRows] = useState(tableData);
   const [filterValues, setFilterValues] = useState({});
-  const [selectedColumn, setSelectedColumn] = useState('');
+  const [selectedColumns, setSelectedColumns] = useState([]);
 
   const [pagePosition, setPagePosition] = useState(0);
   const [maxRows, setMaxRows] = useState(
@@ -25,9 +25,7 @@ const CustomTable = ({
   );
 
   const getColumnDistinctValues = (column) => {
-    const columnIndex = tableColumns.findIndex(
-      (col) => col.name === column
-    );
+    const columnIndex = tableColumns.findIndex((col) => col.name === column);
     const distinctValues = Array.from(
       new Set(tableData.map((data) => data[columnIndex]))
     );
@@ -38,21 +36,20 @@ const CustomTable = ({
     setPagePosition(0);
     setFilteredRows(
       data.filter((datim) =>
-        Object.entries(filterValues).every(
-          ([columnName, filterValue]) => {
-            const columnIndex = tableColumns.findIndex(
-              (column) => column.name === columnName
-            );
-            const columnValue = datim[columnIndex];
-            return (
-              columnValue !== null &&
-              ((columnValue.text || columnValue)
-                .toString()
-                .toLowerCase()
-                .indexOf(filterValue.toLowerCase()) >= 0)
-            );
-          }
-        )
+        selectedColumns.every((columnName) => {
+          const columnIndex = tableColumns.findIndex(
+            (column) => column.name === columnName
+          );
+          const columnValue = datim[columnIndex];
+          const filterValue = filterValues[columnName] || '';
+          return (
+            columnValue !== null &&
+            ((columnValue.text || columnValue)
+              .toString()
+              .toLowerCase()
+              .indexOf(filterValue.toLowerCase()) >= 0)
+          );
+        })
       )
     );
   };
@@ -70,66 +67,76 @@ const CustomTable = ({
 
   const handleColumnSelectChange = (e) => {
     const selectedColumn = e.target.value;
-    setSelectedColumn(selectedColumn);
-    const distinctValues = getColumnDistinctValues(selectedColumn);
+    setSelectedColumns((prevSelectedColumns) => {
+      if (!prevSelectedColumns.includes(selectedColumn)) {
+        return [...prevSelectedColumns, selectedColumn];
+      }
+      return prevSelectedColumns;
+    });
     setFilterValues((prevFilterValues) => ({
+      ...prevFilterValues,
       [selectedColumn]: '',
     }));
-    
-    // Filter the original tableData using the new selectedColumn
-    const filteredData = tableData.filter((data) => {
-      const columnIndex = tableColumns.findIndex(
-        (column) => column.name === selectedColumn
-      );
-      const columnValue = data[columnIndex];
-      const filterValue = filterValues[selectedColumn] || '';
-      return (
-        columnValue !== null &&
-        ((columnValue.text || columnValue)
-          .toString()
-          .toLowerCase()
-          .indexOf(filterValue.toLowerCase()) >= 0)
-      );
-    });
-  
-    setFilteredRows(filteredData);
+    setFilteredRows(tableData);
   };
-  
+
+  const handleRemoveColumn = (columnName) => {
+    setSelectedColumns((prevSelectedColumns) =>
+      prevSelectedColumns.filter((column) => column !== columnName)
+    );
+    setFilterValues((prevFilterValues) => {
+      const { [columnName]: removedValue, ...restFilterValues } = prevFilterValues;
+      return restFilterValues;
+    });
+    setFilteredRows(tableData);
+  };
 
   return (
     <div className="custom-table">
       <div className="filter-container">
         <select
           className="column-select"
-          value={selectedColumn}
+          value=""
           onChange={handleColumnSelectChange}
         >
           <option value="">Select Column</option>
-          {tableColumns.map((column, index) => (
+          {tableColumns.slice(0, 3).map((column, index) => (
             <option key={index} value={column.name}>
               {column.name}
             </option>
           ))}
         </select>
-        {selectedColumn && (
-          <select
-            className="filter-input"
-            value={filterValues[selectedColumn] || ''}
-            onChange={(e) =>
-              handleFilterInputChange(selectedColumn, e.target.value)
-            }
-          >
-            <option value="">All</option>
-            {getColumnDistinctValues(selectedColumn).map((value, index) => (
-              <option key={index} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
+        <div className="selected-columns">
+          {selectedColumns.map((selectedColumn) => (
+            <div key={selectedColumn} className="filter-input-container">
+              <select
+                className="filter-input"
+                value={filterValues[selectedColumn] || ''}
+                onChange={(e) =>
+                  handleFilterInputChange(selectedColumn, e.target.value)
+                }
+              >
+                <option value="">All</option>
+                {getColumnDistinctValues(selectedColumn).map((value, index) => (
+                  <option key={index} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="remove-column-button"
+                onClick={() => handleRemoveColumn(selectedColumn)}
+              >
+                X
+              </button>
+            </div>
+          ))}
+        </div>
+        {selectedColumns.length >= 0 && (
+          <button className="apply-filter-button" onClick={setSearchText}>
+            Apply Filter
+          </button>
         )}
-        <button className="apply-filter-button" onClick={setSearchText}>
-          Apply Filter
-        </button>
       </div>
       <TableQueryRow
         maxRows={maxRows}
